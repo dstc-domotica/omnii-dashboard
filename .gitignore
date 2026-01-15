@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.output/
+.vite/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+
+# Env files
+.env
+.env.*.local
+
+# Coverage
+coverage/
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Misc
+*.tgz
