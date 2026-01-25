@@ -3,11 +3,9 @@ import createClient from "openapi-react-query";
 import type { paths } from "./generated/api-schema";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3001";
-const rawApiUrl = import.meta.env.VITE_API_URL || DEFAULT_API_BASE_URL;
-const apiBaseUrl = rawApiUrl.replace(/\/v1\/?$/, "");
-
+const rawApiUrl = process.env.API_URL || DEFAULT_API_BASE_URL;
 const fetchClient = createFetchClient<paths>({
-	baseUrl: apiBaseUrl,
+	baseUrl: rawApiUrl,
 });
 
 export const api = createClient(fetchClient);
