@@ -204,8 +204,8 @@ export function LatencyChart({ heartbeats }: HeartbeatChartsProps) {
         )}
       </div>
       
-      <div className="h-48">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-48 min-w-0">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={192}>
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             {/* Normal range band */}
             <ReferenceArea

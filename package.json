@@ -9,7 +9,8 @@
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
-    "check": "prettier --write . && eslint --fix"
+    "check": "prettier --write . && eslint --fix",
+    "generate:api": "dotenv -e .env -- sh -c 'bunx openapi-typescript \"${VITE_API_URL}/openapi.json\" -o src/lib/generated/api-schema.ts'"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
@@ -27,6 +28,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "nitro": "latest",
+    "openapi-fetch": "^0.15.0",
+    "openapi-react-query": "^0.5.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.6.0",
@@ -46,7 +49,9 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "dotenv-cli": "^11.0.0",
     "jsdom": "^27.0.0",
+    "openapi-typescript": "^7.10.1",
     "prettier": "^3.5.3",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",

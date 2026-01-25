@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { DotsThreeVerticalIcon, TrashIcon } from "@phosphor-icons/react";
-import { deleteInstance, type Instance } from "@/lib/api";
+import { api, type Instance } from "@/lib/api";
 import { useState } from "react";
 
 interface InstanceCardProps {
@@ -109,6 +109,7 @@ export function InstanceCard({ instance, onDelete }: InstanceCardProps) {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const deleteMutation = api.useMutation("delete", "/v1/instances/{id}");
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -116,7 +117,7 @@ export function InstanceCard({ instance, onDelete }: InstanceCardProps) {
     
     try {
       setIsDeleting(true);
-      await deleteInstance(instance.id);
+      await deleteMutation.mutateAsync({ params: { path: { id: instance.id } } });
       setDeleteDialogOpen(false);
       toast.success(`Instance "${instance.name}" deleted successfully`);
       if (onDelete) {

@@ -1,16 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
-  getInstance,
-  getInstanceSystemInfo,
-  getInstanceUpdates,
-  getInstanceHeartbeats,
-  triggerUpdate,
-  deleteInstance,
+  api,
   type Instance,
   type SystemInfo,
   type AvailableUpdate,
   type Heartbeat,
+  type TriggerUpdateBody,
 } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,56 +113,84 @@ function getUpdateTypeBadgeVariant(updateType: string): "default" | "secondary" 
 function InstanceDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const [instance, setInstance] = useState<Instance | null>(null);
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [updates, setUpdates] = useState<AvailableUpdate[]>([]);
-  const [heartbeats, setHeartbeats] = useState<Heartbeat[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [triggeringUpdate, setTriggeringUpdate] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const [inst, sysInfo, upds, hbs] = await Promise.all([
-        getInstance(id),
-        getInstanceSystemInfo(id),
-        getInstanceUpdates(id),
-        getInstanceHeartbeats(id),
-      ]);
-      setInstance(inst);
-      setSystemInfo(sysInfo);
-      setUpdates(upds);
-      setHeartbeats(hbs);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Failed to fetch instance data"));
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const instanceQuery = api.useQuery(
+    "get",
+    "/v1/instances/{id}",
+    { params: { path: { id } } },
+    { refetchInterval: 30000 }
+  );
+  const systemInfoQuery = api.useQuery(
+    "get",
+    "/v1/instances/{id}/system-info",
+    { params: { path: { id } } },
+    { refetchInterval: 30000 }
+  );
+  const updatesQuery = api.useQuery(
+    "get",
+    "/v1/instances/{id}/updates",
+    { params: { path: { id } } },
+    { refetchInterval: 30000 }
+  );
+  const heartbeatsQuery = api.useQuery(
+    "get",
+    "/v1/instances/{id}/heartbeats",
+    { params: { path: { id }, query: { minutes: 1440 } } },
+    { refetchInterval: 30000 }
+  );
 
-  useEffect(() => {
-    fetchData();
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+  const triggerUpdateMutation = api.useMutation(
+    "post",
+    "/v1/instances/{id}/trigger-update"
+  );
+  const deleteMutation = api.useMutation("delete", "/v1/instances/{id}");
+
+  const instance = (instanceQuery.data ?? null) as Instance | null;
+  const systemInfo: SystemInfo | null =
+    (systemInfoQuery.data as SystemInfo | null) ?? null;
+  const updates = (updatesQuery.data ?? []) as AvailableUpdate[];
+  const heartbeats = (heartbeatsQuery.data ?? []) as Heartbeat[];
+  const loading =
+    instanceQuery.isLoading ||
+    systemInfoQuery.isLoading ||
+    updatesQuery.isLoading ||
+    heartbeatsQuery.isLoading;
+  const error = (instanceQuery.error ||
+    systemInfoQuery.error ||
+    updatesQuery.error ||
+    heartbeatsQuery.error ||
+    null) as Error | null;
+
+  const refetchAll = useCallback(() => {
+    void instanceQuery.refetch();
+    void systemInfoQuery.refetch();
+    void updatesQuery.refetch();
+    void heartbeatsQuery.refetch();
+  }, [
+    instanceQuery.refetch,
+    systemInfoQuery.refetch,
+    updatesQuery.refetch,
+    heartbeatsQuery.refetch,
+  ]);
 
   const handleTriggerUpdate = async (update: AvailableUpdate) => {
     const updateKey = `${update.updateType}-${update.slug || update.name || ""}`;
     try {
       setTriggeringUpdate(updateKey);
-      const result = await triggerUpdate(
-        id,
-        update.updateType,
-        update.updateType === "addon" ? update.slug || undefined : undefined
-      );
-      toast.success(result.message || `Update triggered for ${update.updateType}`);
+      const updateType = update.updateType as TriggerUpdateBody["updateType"];
+      const result = await triggerUpdateMutation.mutateAsync({
+        params: { path: { id } },
+        body: {
+          updateType,
+          addonSlug: updateType === "addon" ? update.slug || undefined : undefined,
+        },
+      });
+      toast.success(result?.message || `Update triggered for ${update.updateType}`);
       // Refresh data after triggering update
-      setTimeout(fetchData, 2000);
+      setTimeout(refetchAll, 2000);
     } catch (err) {
       console.error("Failed to trigger update:", err);
       toast.error("Failed to trigger update. Please try again.");
@@ -181,7 +205,7 @@ function InstanceDetail() {
     
     try {
       setIsDeleting(true);
-      await deleteInstance(id);
+      await deleteMutation.mutateAsync({ params: { path: { id } } });
       setDeleteDialogOpen(false);
       toast.success(`Instance "${instance?.name}" deleted successfully`);
       navigate({ to: "/" });
@@ -204,7 +228,9 @@ function InstanceDetail() {
   if (error || !instance) {
     return (
       <div className="container mx-auto p-4">
-        <div className="text-destructive">Error: {error?.message || "Instance not found"}</div>
+        <div className="text-destructive">
+          Error: {error?.message || "Instance not found"}
+        </div>
       </div>
     );
   }
@@ -373,7 +399,7 @@ function InstanceDetail() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={fetchData}
+              onClick={refetchAll}
               className="h-7 w-7 p-0"
               title="Refresh"
             >

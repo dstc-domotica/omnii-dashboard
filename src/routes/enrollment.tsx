@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { getEnrollmentCodes, createEnrollmentCode, deactivateEnrollmentCode, getGrpcAddress, type EnrollmentCode } from "@/lib/api";
+import { useState } from "react";
+import { api, type EnrollmentCode } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,40 +15,32 @@ export const Route = createFileRoute("/enrollment")({
 });
 
 function EnrollmentPage() {
-  const [codes, setCodes] = useState<EnrollmentCode[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   const [creating, setCreating] = useState(false);
   const [newCode, setNewCode] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "active" | "used" | "expired" | "deactivated">("all");
   const [deactivating, setDeactivating] = useState<string | null>(null);
-  const [grpcAddress, setGrpcAddress] = useState("localhost:50051");
-  useEffect(() => {
-    fetchCodes();
-  }, []);
+  const codesQuery = api.useQuery(
+    "get",
+    "/v1/enrollment-codes",
+    { params: { query: { all: "true" } } }
+  );
+  const configQuery = api.useQuery("get", "/v1/config");
+  const createMutation = api.useMutation("post", "/v1/enrollment-codes");
+  const deactivateMutation = api.useMutation("post", "/v1/enrollment-codes/{id}/deactivate");
 
-  async function fetchCodes() {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getEnrollmentCodes(true);
-      setCodes(data);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Failed to fetch enrollment codes"));
-    } finally {
-      setLoading(false);
-    }
-  }
+  const codes = (codesQuery.data ?? []) as EnrollmentCode[];
+  const loading = codesQuery.isLoading;
+  const error = codesQuery.error as Error | null;
+  const grpcAddress = configQuery.data?.grpcAddress ?? "localhost:50051";
 
   async function handleCreateCode() {
     try {
       setCreating(true);
-      setError(null);
-      const code = await createEnrollmentCode();
-      setNewCode(code.code);
-      await fetchCodes();
+      const code = await createMutation.mutateAsync();
+      setNewCode(code?.code ?? null);
+      await codesQuery.refetch();
     } catch (err) {
-      setError(err instanceof Error ? err : new Error("Failed to create enrollment code"));
+      toast.error(err instanceof Error ? err.message : "Failed to create enrollment code");
     } finally {
       setCreating(false);
     }
@@ -70,28 +62,10 @@ function EnrollmentPage() {
     return code.deactivatedAt !== null;
   }
 
-  useEffect(() => {
-    let isMounted = true;
-    getGrpcAddress()
-      .then((address) => {
-        if (isMounted) {
-          setGrpcAddress(address);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setGrpcAddress("localhost:50051");
-        }
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   async function copyToClipboard(text: string): Promise<void> {
     try {
       await navigator.clipboard.writeText(text);
-    } catch (err) {
+    } catch {
       const textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.style.position = "fixed";
@@ -124,9 +98,11 @@ function EnrollmentPage() {
   async function handleDeactivate(codeId: string) {
     try {
       setDeactivating(codeId);
-      await deactivateEnrollmentCode(codeId);
+      await deactivateMutation.mutateAsync({
+        params: { path: { id: codeId } },
+      });
       toast.success("Enrollment code deactivated");
-      await fetchCodes();
+      await codesQuery.refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to deactivate enrollment code");
     } finally {
@@ -151,7 +127,9 @@ function EnrollmentPage() {
 
       {error && (
         <Card>
-          <CardContent className="py-4 text-destructive">{error.message}</CardContent>
+          <CardContent className="py-4 text-destructive">
+            {error instanceof Error ? error.message : "Failed to fetch enrollment codes"}
+          </CardContent>
         </Card>
       )}
 
