@@ -33,6 +33,8 @@ export type AvailableUpdate =
 	paths["/v1/instances/{id}/updates"]["get"]["responses"]["200"]["content"]["application/json"][number];
 export type Heartbeat =
 	paths["/v1/instances/{id}/heartbeats"]["get"]["responses"]["200"]["content"]["application/json"][number];
+export type ConnectivityCheck =
+	paths["/v1/instances/{id}/connectivity"]["get"]["responses"]["200"]["content"]["application/json"][number];
 export type EnrollmentCode =
 	paths["/v1/enrollment-codes"]["get"]["responses"]["200"]["content"]["application/json"][number];
 export type TriggerUpdateBody =

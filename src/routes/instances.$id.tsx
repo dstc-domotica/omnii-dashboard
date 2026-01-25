@@ -6,6 +6,7 @@ import {
   type SystemInfo,
   type AvailableUpdate,
   type Heartbeat,
+	type ConnectivityCheck,
   type TriggerUpdateBody,
 } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +31,7 @@ import {
 import { DotsThreeVerticalIcon, TrashIcon, ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { toast } from "@/lib/toast";
 import { AvailabilityTimeline, LatencyChart } from "@/components/heartbeat-charts";
+import { ConnectivityLatencyChart, ConnectivitySummary } from "@/components/connectivity-charts";
 
 export const Route = createFileRoute("/instances/$id")({
   component: InstanceDetail,
@@ -141,6 +143,12 @@ function InstanceDetail() {
     { params: { path: { id }, query: { minutes: 1440 } } },
     { refetchInterval: 30000 }
   );
+  const connectivityQuery = api.useQuery(
+    "get",
+    "/v1/instances/{id}/connectivity",
+    { params: { path: { id }, query: { minutes: 1440 } } },
+    { refetchInterval: 30000 }
+  );
 
   const triggerUpdateMutation = api.useMutation(
     "post",
@@ -153,15 +161,18 @@ function InstanceDetail() {
     (systemInfoQuery.data as SystemInfo | null) ?? null;
   const updates = (updatesQuery.data ?? []) as AvailableUpdate[];
   const heartbeats = (heartbeatsQuery.data ?? []) as Heartbeat[];
+  const connectivityChecks = (connectivityQuery.data ?? []) as ConnectivityCheck[];
   const loading =
     instanceQuery.isLoading ||
     systemInfoQuery.isLoading ||
     updatesQuery.isLoading ||
-    heartbeatsQuery.isLoading;
+    heartbeatsQuery.isLoading ||
+    connectivityQuery.isLoading;
   const error = (instanceQuery.error ||
     systemInfoQuery.error ||
     updatesQuery.error ||
     heartbeatsQuery.error ||
+    connectivityQuery.error ||
     null) as Error | null;
 
   const refetchAll = useCallback(() => {
@@ -169,11 +180,13 @@ function InstanceDetail() {
     void systemInfoQuery.refetch();
     void updatesQuery.refetch();
     void heartbeatsQuery.refetch();
+    void connectivityQuery.refetch();
   }, [
     instanceQuery.refetch,
     systemInfoQuery.refetch,
     updatesQuery.refetch,
     heartbeatsQuery.refetch,
+    connectivityQuery.refetch,
   ]);
 
   const handleTriggerUpdate = async (update: AvailableUpdate) => {
@@ -466,6 +479,28 @@ function InstanceDetail() {
         </CardHeader>
         <CardContent>
           <LatencyChart heartbeats={heartbeats} />
+        </CardContent>
+      </Card>
+
+      {/* Connectivity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Connectivity (Last 24h)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <ConnectivitySummary checks={connectivityChecks} />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ConnectivityLatencyChart
+              checks={connectivityChecks}
+              target="8.8.8.8"
+              label="Google DNS (8.8.8.8)"
+            />
+            <ConnectivityLatencyChart
+              checks={connectivityChecks}
+              target="1.1.1.1"
+              label="Cloudflare (1.1.1.1)"
+            />
+          </div>
         </CardContent>
       </Card>
 

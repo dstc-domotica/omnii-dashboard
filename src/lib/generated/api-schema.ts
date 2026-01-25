@@ -662,6 +662,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/instances/{id}/connectivity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    minutes?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Instance connectivity checks */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            instanceId: string;
+                            timestamp: number;
+                            target: string;
+                            status: string;
+                            latencyMs: number | null;
+                            error: string | null;
+                            publicIp: string | null;
+                            ipCountry: string | null;
+                            ipRegion: string | null;
+                            ipCity: string | null;
+                            ipIsp: string | null;
+                            ipAsn: string | null;
+                        }[];
+                    };
+                };
+                /** @description Instance not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Failed to fetch connectivity checks */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
