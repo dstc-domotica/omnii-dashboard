@@ -1,10 +1,11 @@
 import React from 'react'
-import { HeadContent, Scripts, createRootRoute, Outlet } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from '@/components/layout'
 import { Toaster } from '@/components/ui/toast'
+import { initializeApi } from '@/lib/api'
 
 import appCss from '../styles.css?url'
 
@@ -18,6 +19,9 @@ const queryClient = new QueryClient({
 })
 
 export const Route = createRootRoute({
+  beforeLoad: async () => {
+    await initializeApi()
+  },
   head: () => ({
     meta: [
       {

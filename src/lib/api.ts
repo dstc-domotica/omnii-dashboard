@@ -1,14 +1,51 @@
-import createFetchClient from "openapi-fetch";
+import createFetchClient, { type Client } from "openapi-fetch";
 import createClient from "openapi-react-query";
 import type { paths } from "./generated/api-schema";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3001";
-const apiUrl = process.env.API_URL || DEFAULT_API_BASE_URL;
-const fetchClient = createFetchClient<paths>({
-	baseUrl: apiUrl,
-});
 
-export const api = createClient(fetchClient);
+let cachedApiUrl: string = DEFAULT_API_BASE_URL;
+let fetchClientInstance: Client<paths> | null = null;
+
+async function getApiUrl(): Promise<string> {
+	if (cachedApiUrl !== DEFAULT_API_BASE_URL) return cachedApiUrl;
+
+	// In browser, fetch from our server API route
+	if (typeof window !== "undefined") {
+		try {
+			const res = await fetch("/api/config");
+			const data = await res.json();
+			cachedApiUrl = data.apiUrl || DEFAULT_API_BASE_URL;
+		} catch {
+			cachedApiUrl = DEFAULT_API_BASE_URL;
+		}
+	} else {
+		// Server-side, read from env directly
+		cachedApiUrl = process.env.API_URL || DEFAULT_API_BASE_URL;
+	}
+
+	return cachedApiUrl;
+}
+
+function getFetchClient(): Client<paths> {
+	if (!fetchClientInstance) {
+		// Initialize with default, will be updated after config loads
+		fetchClientInstance = createFetchClient<paths>({
+			baseUrl: cachedApiUrl || DEFAULT_API_BASE_URL,
+		});
+	}
+	return fetchClientInstance;
+}
+
+// Initialize config on app load
+export async function initializeApi(): Promise<void> {
+	const apiUrl = await getApiUrl();
+	fetchClientInstance = createFetchClient<paths>({
+		baseUrl: apiUrl,
+	});
+}
+
+export const api = createClient(getFetchClient());
 
 export type Instance =
 	paths["/instances/{id}"]["get"]["responses"]["200"]["content"]["application/json"];
