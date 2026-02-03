@@ -21,12 +21,12 @@ function EnrollmentPage() {
   const [deactivating, setDeactivating] = useState<string | null>(null);
   const codesQuery = api.useQuery(
     "get",
-    "/v1/enrollment-codes",
+    "/enrollment-codes",
     { params: { query: { all: "true" } } }
   );
-  const configQuery = api.useQuery("get", "/v1/config");
-  const createMutation = api.useMutation("post", "/v1/enrollment-codes");
-  const deactivateMutation = api.useMutation("post", "/v1/enrollment-codes/{id}/deactivate");
+  const configQuery = api.useQuery("get", "/config");
+  const createMutation = api.useMutation("post", "/enrollment-codes");
+  const deactivateMutation = api.useMutation("post", "/enrollment-codes/{id}/deactivate");
 
   const codes = (codesQuery.data ?? []) as EnrollmentCode[];
   const loading = codesQuery.isLoading;

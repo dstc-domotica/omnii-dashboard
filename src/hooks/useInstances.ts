@@ -3,7 +3,7 @@ import { api, type Instance } from "@/lib/api";
 export function useInstances() {
   const query = api.useQuery(
     "get",
-    "/v1/instances",
+    "/instances",
     undefined,
     { refetchInterval: 30000 }
   );

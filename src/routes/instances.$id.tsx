@@ -121,40 +121,40 @@ function InstanceDetail() {
 
   const instanceQuery = api.useQuery(
     "get",
-    "/v1/instances/{id}",
+    "/instances/{id}",
     { params: { path: { id } } },
     { refetchInterval: 30000 }
   );
   const systemInfoQuery = api.useQuery(
     "get",
-    "/v1/instances/{id}/system-info",
+    "/instances/{id}/system-info",
     { params: { path: { id } } },
     { refetchInterval: 30000 }
   );
   const updatesQuery = api.useQuery(
     "get",
-    "/v1/instances/{id}/updates",
+    "/instances/{id}/updates",
     { params: { path: { id } } },
     { refetchInterval: 30000 }
   );
   const heartbeatsQuery = api.useQuery(
     "get",
-    "/v1/instances/{id}/heartbeats",
+    "/instances/{id}/heartbeats",
     { params: { path: { id }, query: { minutes: 1440 } } },
     { refetchInterval: 30000 }
   );
   const connectivityQuery = api.useQuery(
     "get",
-    "/v1/instances/{id}/connectivity",
+    "/instances/{id}/connectivity",
     { params: { path: { id }, query: { minutes: 1440 } } },
     { refetchInterval: 30000 }
   );
 
   const triggerUpdateMutation = api.useMutation(
     "post",
-    "/v1/instances/{id}/trigger-update"
+    "/instances/{id}/trigger-update"
   );
-  const deleteMutation = api.useMutation("delete", "/v1/instances/{id}");
+  const deleteMutation = api.useMutation("delete", "/instances/{id}");
 
   const instance = (instanceQuery.data ?? null) as Instance | null;
   const systemInfo: SystemInfo | null =

@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/v1/config": {
+    "/config": {
         parameters: {
             query?: never;
             header?: never;
@@ -53,7 +53,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/enrollment-codes": {
+    "/enrollment-codes": {
         parameters: {
             query?: never;
             header?: never;
@@ -143,7 +143,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/enrollment-codes/{id}/deactivate": {
+    "/enrollment-codes/{id}/deactivate": {
         parameters: {
             query?: never;
             header?: never;
@@ -204,7 +204,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/instances": {
+    "/instances": {
         parameters: {
             query?: never;
             header?: never;
@@ -258,7 +258,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/instances/{id}": {
+    "/instances/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -370,7 +370,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/instances/{id}/system-info": {
+    "/instances/{id}/system-info": {
         parameters: {
             query?: never;
             header?: never;
@@ -443,7 +443,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/instances/{id}/updates": {
+    "/instances/{id}/updates": {
         parameters: {
             query?: never;
             header?: never;
@@ -515,7 +515,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/instances/{id}/trigger-update": {
+    "/instances/{id}/trigger-update": {
         parameters: {
             query?: never;
             header?: never;
@@ -595,7 +595,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/instances/{id}/heartbeats": {
+    "/instances/{id}/heartbeats": {
         parameters: {
             query?: never;
             header?: never;
@@ -662,7 +662,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/instances/{id}/connectivity": {
+    "/instances/{id}/connectivity": {
         parameters: {
             query?: never;
             header?: never;

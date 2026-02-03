@@ -109,7 +109,7 @@ export function InstanceCard({ instance, onDelete }: InstanceCardProps) {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const deleteMutation = api.useMutation("delete", "/v1/instances/{id}");
+  const deleteMutation = api.useMutation("delete", "/instances/{id}");
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
